@@ -1,30 +1,18 @@
+using LostFoundDocs.Models;
 using LostFoundDocs.Services.Abstractions;
-
 namespace LostFoundDocs.Services.Navigation;
 
 public sealed class ShellNavigationService : INavigationService
 {
-    private readonly IDialogService _dialogs;
-
-    public ShellNavigationService(IDialogService dialogs) => _dialogs = dialogs;
-
-    public async Task GoToAsync(string route, IDictionary<string, object>? parameters = null)
+    public Task GoToAsync(string route, IDictionary<string, object>? parameters = null)
     {
-        // Échafaudage de la phase A : les écrans de la phase B ne sont pas encore déclarés.
-        if (!Routes.IsAvailable(route))
+        if (route is Routes.DeclareLost or Routes.DeclareFound)
+            parameters = new Dictionary<string, object> { ["kind"] = route == Routes.DeclareFound ? ReportKind.Found : ReportKind.Lost };
+        return MainThread.InvokeOnMainThreadAsync(async () =>
         {
-            await _dialogs.AlertAsync("Bientôt disponible", "Cet écran sera livré dans une prochaine phase du frontend.");
-            return;
-        }
-
-        await MainThread.InvokeOnMainThreadAsync(async () =>
-        {
-            if (parameters is null)
-                await Shell.Current.GoToAsync(route);
-            else
-                await Shell.Current.GoToAsync(route, parameters);
+            if (parameters is null) await Shell.Current.GoToAsync(route);
+            else await Shell.Current.GoToAsync(route, new ShellNavigationQueryParameters(parameters));
         });
     }
-
     public Task GoBackAsync() => MainThread.InvokeOnMainThreadAsync(() => Shell.Current.GoToAsync(".."));
 }

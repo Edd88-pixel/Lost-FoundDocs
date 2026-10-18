@@ -57,17 +57,62 @@ Police d'icônes **Lucide** (licence ISC), fichier `Resources/Fonts/lucide.ttf`,
 - **Dates cohérentes** : toutes les dates fictives sont calculées à partir de la date du jour ; `DemoDataValidator` vérifie les invariants (résultat dans la fenêtre Sortie en Debug).
 - **Date de naissance facultative**, numéro de document jamais obligatoire.
 
-## État d'avancement
-- Phase A : thème, composants, services, connexion, inscription, mot de passe oublié, accueil, navigation par onglets.
-- Phase B : formulaires de déclaration, recherche, correspondances, signalements, messages, notifications, restitution, preuve, profil complet.
-- Phase C : interactions, états vides, filtres, parcours complets.
+## Parcours disponibles
+- Déclaration de perte en quatre étapes et déclaration de trouvaille, validation par champ, numéro facultatif, photo fictive et confirmation avant abandon.
+- Recherche déterministe : CNI ou diplôme à Douala pour une perte ; passeport ou diplôme à Douala pour une trouvaille. Le profil → À propos permet de forcer un résultat positif ou négatif.
+- Signalements filtrés, détails et historique des changements de statut, contestation et annulation.
+- Conversations locales liées aux correspondances, compteurs de non-lus et notifications avec navigation vers leur cible.
+- Proposition, acceptation et confirmation de restitution dans les deux rôles ; reçu de démonstration non vérifiable.
+- Informations personnelles, sécurité, préférences de notification, confidentialité, aide et réglages de démonstration.
 
-## Simulations actuelles
-| Fonction | Simulation |
-|---|---|
-| Connexion / inscription | comptes en mémoire, mot de passe en clair en mémoire |
-| Mot de passe oublié | code fixe affiché, aucun SMS |
-| « Recherche active vérifiée il y a 12 min » | heure fictive |
-| Signalements du compte de démonstration | jeu de données généré (dates relatives) |
+Le thème clair, les couleurs et les composants de la phase A sont conservés. La déconnexion vide les signalements de session. À propos permet de repartir avec un compte vide ou les exemples fictifs.
 
-Le backend devra fournir, pour chacune : authentification sécurisée (hachage, jetons), envoi réel de SMS, moteur de correspondance, stockage persistant.
+## Simulations
+| Fonction | Comportement local | À fournir par le backend |
+|---|---|---|
+| Comptes et mot de passe | Mémoire uniquement, code SMS fixe | Hachage, jetons, SMS et récupération réelle |
+| Signalements et correspondances | Objets en mémoire, règle type/ville, score fictif | Persistance, autorisation et moteur de recherche |
+| Photos | Illustration fictive et refus de fichier simulé | Sélection native, stockage privé et validation serveur |
+| Messages et notifications | Aucune transmission entre appareils | Messagerie, push et synchronisation |
+| Rendez-vous et reçus | Propositions locales, QR non scannable | Confirmation partagée et reçu signé |
+| Télécharger le reçu | Confirmation simulée, aucun fichier PDF créé | Génération et téléchargement réels |
+
+Les interfaces des services sont dans `Services/Abstractions`; leurs implémentations fictives sont dans `Services/Mock`.
+
+## Vérifications des règles métier
+Aucune dépendance de test supplémentaire. Depuis la racine, avec .NET 9 :
+
+```sh
+dotnet run --project Tests/LostFoundDocs.Tests.csproj
+```
+
+Le programme vérifie la validation, l’idempotence, les dates, les transitions, les deux rôles de restitution, les compteurs, les états vides et l’isolation entre comptes. Un échec termine le programme avec une erreur.
+
+## Recette manuelle
+1. Remplir le compte de démonstration et se connecter.
+2. Refuser des identifiants incorrects et vérifier le message.
+3. Créer un compte et constater les listes vides.
+4. Vérifier le code de récupération simulé et son erreur.
+5. Ouvrir une perte sans choisir de type, puis continuer.
+6. Choisir Autre et vérifier l’intitulé obligatoire.
+7. Vérifier le nom obligatoire pour une perte.
+8. Vérifier un numéro trop court et un numéro absent.
+9. Revenir à l’étape précédente et retrouver la saisie.
+10. Vérifier un lieu absent et les raccourcis de lieu.
+11. Refuser un numéro complet dans les notes.
+12. Ajouter, remplacer et supprimer une photo simulée.
+13. Simuler une photo invalide.
+14. Annuler puis confirmer l’abandon du formulaire.
+15. Déclarer une perte et vérifier qu’elle n’apparaît qu’une fois.
+16. Vérifier une correspondance et ses informations masquées.
+17. Signaler une erreur et constater le statut contesté.
+18. Forcer Aucun résultat dans À propos et refaire une recherche.
+19. Déclarer une trouvaille avec seulement un nom ou seulement un numéro.
+20. Filtrer Perdus/Trouvés et ouvrir un détail.
+21. Ouvrir une conversation, vérifier le non-lu et envoyer un message local.
+22. Accepter une proposition côté propriétaire et confirmer la récupération.
+23. Proposer un créneau futur côté trouveur et confirmer la remise.
+24. Ouvrir la preuve depuis une notification et simuler son enregistrement.
+25. Modifier le profil, vérifier les préférences et réinitialiser le compte de démonstration.
+
+Android et Windows restent les cibles .NET 9 du projet. Une vérification avec un autre SDK ne remplace pas la compilation dans Visual Studio sur ces cibles.

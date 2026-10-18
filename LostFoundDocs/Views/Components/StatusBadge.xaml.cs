@@ -1,10 +1,22 @@
 using LostFoundDocs.UI;
+using LostFoundDocs.Models;
 
 namespace LostFoundDocs.Views.Components;
 
 /// <summary>Pastille de statut (point ou coche + libellé). Le texte n'est jamais seul porteur de la couleur.</summary>
 public partial class StatusBadge : ContentView
 {
+    public static readonly BindableProperty StatusProperty = BindableProperty.Create(
+        nameof(Status), typeof(ReportStatus?), typeof(StatusBadge), null,
+        propertyChanged: (bindable, _, value) =>
+        {
+            if (value is not ReportStatus status) return;
+            var badge = (StatusBadge)bindable;
+            badge.Text = ReportStatusRules.Label(status);
+            badge.Kind = Presentation.Kind(status);
+            badge.ShowCheck = status == ReportStatus.Returned;
+        });
+    public ReportStatus? Status { get => (ReportStatus?)GetValue(StatusProperty); set => SetValue(StatusProperty, value); }
     public static readonly BindableProperty TextProperty = Prop(nameof(Text), string.Empty);
     public static readonly BindableProperty KindProperty = Prop(nameof(Kind), BadgeKind.Neutral);
     public static readonly BindableProperty ShowCheckProperty = Prop(nameof(ShowCheck), false);

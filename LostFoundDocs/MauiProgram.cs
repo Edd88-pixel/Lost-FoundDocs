@@ -37,9 +37,14 @@ public static class MauiProgram
     private static void RegisterServices(IServiceCollection services)
     {
         // SIMULATION (frontend uniquement) : implémentations en mémoire.
-        // Phase backend : remplacer uniquement ces deux lignes par des implémentations HTTP.
+        // Phase backend : remplacer les services fictifs par des implémentations HTTP.
         services.AddSingleton<IAuthService, MockAuthService>();
         services.AddSingleton<IReportService, MockReportService>();
+        services.AddSingleton<INotificationService, MockNotificationService>();
+        services.AddSingleton<IMatchService, MockMatchService>();
+        services.AddSingleton<IConversationService, MockConversationService>();
+        services.AddSingleton<IRestitutionService, MockRestitutionService>();
+        services.AddSingleton<IProfileService, MockProfileService>();
 
         services.AddSingleton<IDialogService, DialogService>();
         services.AddSingleton<INavigationService, ShellNavigationService>();
@@ -52,6 +57,16 @@ public static class MauiProgram
         services.AddTransient<ForgotPasswordViewModel>();
         services.AddTransient<HomeViewModel>();
         services.AddTransient<ProfileViewModel>();
+        services.AddTransient<DeclarationViewModel>();
+        services.AddTransient<ReportDetailsViewModel>();
+        services.AddTransient<MatchViewModel>();
+        services.AddTransient<ReportsViewModel>();
+        services.AddTransient<MessagesViewModel>();
+        services.AddTransient<ConversationViewModel>();
+        services.AddTransient<NotificationsViewModel>();
+        services.AddTransient<RestitutionViewModel>();
+        services.AddTransient<ReceiptViewModel>();
+        services.AddTransient<ProfileSettingsViewModel>();
 
         services.AddTransient<SplashPage>();
         services.AddTransient<LoginPage>();
@@ -61,6 +76,22 @@ public static class MauiProgram
         services.AddTransient<ReportsPage>();
         services.AddTransient<MessagesPage>();
         services.AddTransient<ProfilePage>();
+        services.AddTransient<Views.Declaration.DeclarationPage>();
+        services.AddTransient<Views.Declaration.ConfirmationPage>();
+        services.AddTransient<Views.Reports.ReportDetailsPage>();
+        services.AddTransient<Views.Matching.MatchPage>();
+        services.AddTransient<Views.Matching.MatchDetailsPage>();
+        services.AddTransient<Views.Messages.ConversationPage>();
+        services.AddTransient<Views.Notifications.NotificationsPage>();
+        services.AddTransient<Views.Restitution.RestitutionPage>();
+        services.AddTransient<Views.Restitution.ReturnedPage>();
+        services.AddTransient<Views.Restitution.ReceiptPage>();
+        services.AddTransient<Views.Profile.PersonalPage>();
+        services.AddTransient<Views.Profile.SecurityPage>();
+        services.AddTransient<Views.Profile.PreferencesPage>();
+        services.AddTransient<Views.Profile.PrivacyPage>();
+        services.AddTransient<Views.Profile.HelpPage>();
+        services.AddTransient<Views.Profile.AboutPage>();
     }
 
     /// <summary>

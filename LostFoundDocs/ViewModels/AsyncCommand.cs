@@ -32,6 +32,7 @@ public sealed class AsyncCommand : ICommand
         catch (Exception ex)
         {
             Debug.WriteLine($"[AsyncCommand] {ex}");
+            await LostFoundDocs.UI.ServiceHelper.Get<LostFoundDocs.Services.Abstractions.IDialogService>().AlertAsync("Action impossible", ex.Message);
         }
         finally
         {
@@ -67,6 +68,7 @@ public sealed class AsyncCommand<T> : ICommand
         catch (Exception ex)
         {
             Debug.WriteLine($"[AsyncCommand<{typeof(T).Name}>] {ex}");
+            await LostFoundDocs.UI.ServiceHelper.Get<LostFoundDocs.Services.Abstractions.IDialogService>().AlertAsync("Action impossible", ex.Message);
         }
         finally
         {

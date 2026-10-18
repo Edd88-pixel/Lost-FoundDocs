@@ -5,6 +5,8 @@ namespace LostFoundDocs.Views.Components;
 /// <summary>Champ de formulaire réutilisable : libellé, (facultatif), badge, préfixe, œil, aide et erreur.</summary>
 public partial class FormField : ContentView
 {
+    public event EventHandler? ValidationRequested;
+    public void FocusInput() => Input.Focus();
     private bool _hidden = true;
     private bool _focused;
 
@@ -29,7 +31,7 @@ public partial class FormField : ContentView
     {
         InitializeComponent();
         Input.Focused += (_, _) => { _focused = true; UpdateStroke(); };
-        Input.Unfocused += (_, _) => { _focused = false; UpdateStroke(); };
+        Input.Unfocused += (_, _) => { _focused = false; UpdateStroke(); ValidationRequested?.Invoke(this, EventArgs.Empty); };
     }
 
     public string LabelText { get => (string)GetValue(LabelTextProperty); set => SetValue(LabelTextProperty, value); }

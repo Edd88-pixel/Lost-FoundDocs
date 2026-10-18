@@ -21,7 +21,11 @@ public sealed class MockReportService : IReportService
     public MockReportService(IAuthService auth)
     {
         _auth = auth;
-        _auth.SessionChanged += (_, _) => ReportsChanged?.Invoke(this, EventArgs.Empty);
+        _auth.SessionChanged += (_, _) =>
+        {
+            if (!_auth.IsSignedIn) _store.Clear();
+            ReportsChanged?.Invoke(this, EventArgs.Empty);
+        };
     }
 
     public event EventHandler? ReportsChanged;
@@ -47,7 +51,9 @@ public sealed class MockReportService : IReportService
 
     public async Task<Report> SubmitAsync(ReportDraft draft)
     {
+        var user = _auth.CurrentUser ?? throw new InvalidOperationException("Session expirée.");
         await Task.Delay(DemoSettings.SimulatedLatencyMs);
+        if (_auth.CurrentUser?.Id != user.Id) throw new InvalidOperationException("La session a changé.");
         lock (_gate)
         {
             var list = CurrentList();
@@ -58,7 +64,7 @@ public sealed class MockReportService : IReportService
                 return existing;
             }
 
-            var error = ValidateDraft(draft);
+            var error = DeclarationRules.Validate(draft, 0, Clock.Today).Values.FirstOrDefault();
             if (error is not null) throw new ArgumentException(error, nameof(draft));
 
             var now = Clock.Now;
@@ -82,6 +88,7 @@ public sealed class MockReportService : IReportService
                 UpdatedAt = now,
                 Status = ReportStatus.Searching,
             };
+            report.History.Add(new ReportStatusChange(ReportStatus.Searching, now));
             list.Insert(0, report);
             draft.SubmittedReportId = report.Id;
             ReportsChanged?.Invoke(this, EventArgs.Empty);
@@ -103,6 +110,7 @@ public sealed class MockReportService : IReportService
             }
             report.Status = newStatus;
             report.UpdatedAt = Clock.Now;
+            report.History.Add(new ReportStatusChange(newStatus, report.UpdatedAt));
             ReportsChanged?.Invoke(this, EventArgs.Empty);
             return report;
         }
@@ -119,6 +127,15 @@ public sealed class MockReportService : IReportService
         {
             return false;
         }
+    }
+
+    public Task ResetAsync(bool populated)
+    {
+        var user = _auth.CurrentUser ?? throw new InvalidOperationException("Session expirée.");
+        _store[user.Id] = populated ? DemoData.CreateReportsFor(user.Id, Clock.Now) : new List<Report>();
+        foreach (var report in _store[user.Id]) _references.Add(report.Reference);
+        ReportsChanged?.Invoke(this, EventArgs.Empty);
+        return Task.CompletedTask;
     }
 
     private List<Report> CurrentList()
@@ -144,23 +161,6 @@ public sealed class MockReportService : IReportService
             reference = $"LF-{now.Year}-{_nextReference++:D6}";
         } while (!_references.Add(reference));
         return reference;
-    }
-
-    private static string? ValidateDraft(ReportDraft d)
-    {
-        var today = Clock.Today;
-        if (d.Type is null) return "Le type de document est obligatoire.";
-        if (d.Kind == ReportKind.Lost && FieldRules.FullName(d.HolderName) is { } nameError) return nameError;
-        if (d.Kind == ReportKind.Found && string.IsNullOrWhiteSpace(d.HolderName) && string.IsNullOrWhiteSpace(d.Number))
-            return "Renseignez au moins le nom ou le numéro visible sur le document.";
-        if (d.Type == DocumentType.Other && d.Kind == ReportKind.Found && string.IsNullOrWhiteSpace(d.CustomTitle))
-            return "Indiquez l’intitulé du document.";
-        if (FieldRules.OptionalBirthDate(d.BirthDate, today) is { } birthError) return birthError;
-        if (FieldRules.OptionalDocumentNumber(d.Number) is { } numberError) return numberError;
-        if (FieldRules.EventDate(d.EventDate, today, d.BirthDate, "La date est obligatoire.") is { } dateError) return dateError;
-        if (FieldRules.Required(d.City, "La ville est obligatoire.") is { } cityError) return cityError;
-        if (FieldRules.Required(d.Place, "Indiquez le lieu, même approximatif.") is { } placeError) return placeError;
-        return FieldRules.Notes(d.Notes);
     }
 
     [Conditional("DEBUG")]

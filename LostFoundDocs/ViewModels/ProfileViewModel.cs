@@ -4,7 +4,7 @@ using LostFoundDocs.Services.Navigation;
 
 namespace LostFoundDocs.ViewModels;
 
-/// <summary>Version minimale de la phase A (identité + déconnexion). Complétée en phase B.</summary>
+/// <summary>Identité, navigation du profil et déconnexion.</summary>
 public sealed class ProfileViewModel : ViewModelBase
 {
     private readonly IAuthService _auth;
@@ -17,9 +17,11 @@ public sealed class ProfileViewModel : ViewModelBase
         _dialogs = dialogs;
         _nav = nav;
         SignOutCommand = new AsyncCommand(SignOutAsync);
+        OpenPageCommand = new AsyncCommand<string>(route => route is null ? Task.CompletedTask : _nav.GoToAsync(route));
     }
 
     public ICommand SignOutCommand { get; }
+    public ICommand OpenPageCommand { get; }
 
     public string FullName => _auth.CurrentUser?.FullName ?? string.Empty;
     public string DisplayPhone => _auth.CurrentUser?.DisplayPhone ?? string.Empty;

@@ -9,6 +9,7 @@ public interface IReportService
     event EventHandler? ReportsChanged;
 
     Task<Report?> GetAsync(Guid id);
+    Task ResetAsync(bool populated);
 
     /// <summary>
     /// Enregistre le brouillon UNE SEULE FOIS (idempotent : un second appel avec le même brouillon

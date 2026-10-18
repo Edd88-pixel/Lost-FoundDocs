@@ -15,5 +15,5 @@ public static class DemoSettings
     public const string ResetCode = "123456";             // code SMS fictif (aucun SMS n'est envoyé)
 
     public static int SimulatedLatencyMs { get; set; } = 500;
-    public static MatchMode MatchMode { get; set; } = MatchMode.Auto;   // utilisé en phase B
+    public static MatchMode MatchMode { get; set; } = MatchMode.Auto;
 }

@@ -1,6 +1,12 @@
+using LostFoundDocs.ViewModels;
 namespace LostFoundDocs.Views.Shared;
-
 public partial class ReportsPage : ContentPage
 {
-    public ReportsPage() => InitializeComponent();
+    private readonly ReportsViewModel _viewModel;
+    public ReportsPage(ReportsViewModel viewModel)
+    {
+        InitializeComponent();
+        BindingContext = _viewModel = viewModel;
+    }
+    protected override void OnAppearing() { base.OnAppearing(); _viewModel.Refresh(); }
 }
